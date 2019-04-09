@@ -1,0 +1,1 @@
+ant -Denv=prod -f path\to\dataloader\vXX.x.x\configs\build.xml

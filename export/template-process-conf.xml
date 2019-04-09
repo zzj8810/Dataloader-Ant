@@ -1,0 +1,29 @@
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
+<beans>
+    <bean id="_object_"
+          class="com.salesforce.dataloader.process.ProcessRunner"
+          singleton="false">
+      <description>csvExtract job gets records from salesforce and saves info into a CSV file.</description>
+        <property name="name" value="_object_"/>
+        <property name="configOverrideMap">
+            <map>
+                <entry key="sfdc.endpoint" value="_endpoint_"/>
+                <entry key="sfdc.username" value="_username_"/>
+                <entry key="sfdc.password" value="_password_"/>
+                <entry key="process.encryptionKeyFile" value="_encryptionKeyFile_"/>
+                <entry key="sfdc.timeoutSecs" value="600"/>
+                <entry key="sfdc.extractionRequestSize" value="2000"/>
+                <entry key="sfdc.enableRetries" value="true"/>
+                <entry key="sfdc.maxRetries" value="5"/>
+                <entry key="sfdc.minRetrySleepSecs" value="5"/>
+                <entry key="dataAccess.type" value="csvWrite"/>
+                <entry key="dataAccess.writeBatchSize" value="2000"/>
+                <entry key="process.enableLastRunOutput" value="true"/>
+                <entry key="process.operation" value="extract"/>
+                <entry key="sfdc.extractionSOQL" value="_soql_"/>
+                <entry key="sfdc.entity" value="_object_"/>
+                <entry key="dataAccess.name" value="_file_"/>
+            </map>
+        </property>
+    </bean>
+</beans>

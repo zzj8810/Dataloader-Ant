@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="Export" default="all" xmlns:if="ant:if" xmlns:unless="ant:unless">
+    <tstamp>
+        <format property="today" pattern="yyyyMMdd"/>
+    </tstamp>
+    <property name="outputFolder" value="path\to\outputFolder\Export_${today}"/>
+    <property file="${env}.build.properties"/>
+    <macrodef name="export">
+        <attribute name="object"/>
+        <attribute name="soql"/>
+        <sequential>
+            <!-- Initiate -->
+            <echo message="Exporting @{object}"/>
+
+            <local name="process.lastRunDate"/>
+            <property file="@{object}_lastRun.properties"/>
+
+            <local name="csvFile"/>
+            <local name="csvFile.lines"/>
+            <local name="csvFile.delete"/>
+            <property name="csvFile" value="${outputFolder}\@{object}_${today}.csv"/>
+
+            <!-- Create process-conf.xml -->
+            <copy 
+                file="template-process-conf.xml" 
+                tofile="process-conf.xml" 
+                overwrite="true" 
+                failonerror="true"/>
+            <replace file="process-conf.xml">
+                <replacefilter token="_endpoint_" value="${sfdc.endpoint}"/>
+                <replacefilter token="_username_" value="${sfdc.username}"/>
+                <replacefilter token="_password_" value="${sfdc.password}"/>
+                <replacefilter token="_encryptionKeyFile_" value="${process.encryptionKeyFile}"/>
+                <replacefilter token="_object_" value="@{object}"/>
+                <replacefilter token="_soql_" value="@{soql} WHERE SystemModStamp >= ${process.lastRunDate}" if:set="process.lastRunDate"/>
+                <replacefilter token="_soql_" value="@{soql}" unless:set="process.lastRunDate"/>
+                <replacefilter token="_file_" value="${csvFile}"/>
+            </replace>
+
+            <!-- Run dataloader java program -->
+            <java 
+                classname="com.salesforce.dataloader.process.ProcessRunner" 
+                classpath="..\dataloader-45.0.0-uber.jar" 
+                failonerror="true">
+                <sysproperty key="salesforce.config.dir" value="${basedir}"/>
+                <arg line="process.name=@{object}"/>
+                <!--<jvmarg value="-Xms1024M"/>
+                <jvmarg value="-Xmx2048M"/>-->
+            </java>
+
+            <!-- Add row count to summary log -->
+            <resourcecount property="csvFile.lines">
+                <tokens>
+                    <concat>
+                        <filterchain>
+                            <tokenfilter>
+                                <linetokenizer/>
+                            </tokenfilter>
+                        </filterchain>
+                        <fileset file="${csvFile}" />
+                    </concat>
+                </tokens>
+            </resourcecount>
+            <echo message="@{object},${csvFile.lines}${line.separator}" file="${outputFolder}\ExportSummary_${today}.log" append="true" />
+            
+            <!-- Delete zero record file -->
+            <condition property="csvFile.delete">
+                <equals arg1="${csvFile.lines}" arg2="1" />
+            </condition>
+            <delete file="${csvFile}" if:true="${csvFile.delete}" />
+        </sequential>
+    </macrodef>
+
+    <!-- Target -->
+    <target name="all">
+        <mkdir dir="${outputFolder}"/>
+        <record name="${outputFolder}\ExportDetail_${today}.log" action="start"/>
+        <export object="Account" soql="Select Id, Name, LastModifiedDate From Account"/>
+        <export object="Contact" soql="Select Id, Name, LastModifiedDate From Contact"/>
+        <record name="${outputFolder}\ExportDetail_${today}.log" action="stop"/>
+    </target>
+</project>
