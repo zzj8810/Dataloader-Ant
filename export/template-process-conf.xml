@@ -19,7 +19,7 @@
                 <entry key="dataAccess.type" value="csvWrite"/>
                 <entry key="dataAccess.writeBatchSize" value="2000"/>
                 <entry key="process.enableLastRunOutput" value="true"/>
-                <entry key="process.operation" value="extract"/>
+                <entry key="process.operation" value="extract"/> <!--extract_all-->
                 <entry key="sfdc.extractionSOQL" value="_soql_"/>
                 <entry key="sfdc.entity" value="_object_"/>
                 <entry key="dataAccess.name" value="_file_"/>
